@@ -1,5 +1,6 @@
 from flask import Flask
 import logging
+import requests
 
 app = Flask(__name__)
 
@@ -27,6 +28,15 @@ def log():
 <script>
  console.log("Info level log JavaScript.")
 </script>
+<br>
+<input type="text" name="Textbox" value="This is a textbox">
     """
-    return logString + "This is the logger page."
+    return "This is the logger page." + logString
+
+@app.route('/cookies', methods=["GET"])
+
+def cookies():
+    req = requests.get("https://www.google.com/")
+    googleCookies = req.cookies.get_dict()
+    return googleCookies
 
