@@ -36,7 +36,10 @@ def log():
 @app.route('/cookies', methods=["GET"])
 
 def cookies():
-    req = requests.get("https://www.google.com/")
-    googleCookies = req.cookies.get_dict()
+    #req = requests.get("https://www.google.com/")
+    #googleCookies = req.cookies.get_dict()
+
+    req = requests.get("https://analytics.google.com/analytics/web/?hl=fr#/report-home/a250395355w344281288p280864294")
+    googleCookies = req.text
     return googleCookies
 
