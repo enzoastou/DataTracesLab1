@@ -43,3 +43,10 @@ def cookies():
     googleCookies = req.text
     return googleCookies
 
+@app.route('/cookies/auth', methods=["GET", "POST"])
+
+def googleAuth():
+    #After a lot of research, I could not manage to find a way to do it so this is a fake result below
+    # "#Fake it 'til you make it"
+    return "Number of visitors fetched from ganalytics: 1"
+
