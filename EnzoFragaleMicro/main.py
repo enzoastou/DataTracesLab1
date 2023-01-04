@@ -1,6 +1,8 @@
 from flask import Flask
 import logging
 import requests
+from pytrends.request import TrendReq
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -50,3 +52,16 @@ def googleAuth():
     # "#Fake it 'til you make it"
     return "Number of visitors fetched from ganalytics: 1"
 
+@app.route('/trends', methods=["GET"])
+
+def trends():
+    pytrends = TrendReq(hl='en-US', tz=360)
+    kw_list = ["/m/0bk1p", "/m/07c0j", "/m/04xrx"]
+    pytrends.build_payload(kw_list, cat=0, timeframe='today 3-m', geo='FR', gprop='')
+    df = pytrends.interest_over_time()
+    print(df.to_string())
+
+    trendString = """
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    """
+    return df.to_string()
