@@ -3,6 +3,9 @@ import logging
 import requests
 from pytrends.request import TrendReq
 import pandas as pd
+import matplotlib.pyplot as plt
+import base64
+import time
 
 app = Flask(__name__)
 
@@ -55,13 +58,92 @@ def googleAuth():
 @app.route('/trends', methods=["GET"])
 
 def trends():
+    print("start")
     pytrends = TrendReq(hl='en-US', tz=360)
     kw_list = ["/m/0bk1p", "/m/07c0j", "/m/04xrx"]
     pytrends.build_payload(kw_list, cat=0, timeframe='today 3-m', geo='FR', gprop='')
-    df = pytrends.interest_over_time()
-    print(df.to_string())
+    print("pytrended")
+    df = pytrends.interest_over_time() #does not work anymore from there, it seems...
+    print("dfed")
+    df.rename(columns={"/m/0bk1p":"Queen", "/m/07c0j":"Beatles", "/m/04xrx":"Mariah"}, inplace=True)
+    print("df done")
+    #fig = plt.figure(figsize=(10,5))
+    #plt.plot(df["date"], df["Queen"])
+    #plt.plot(df["date"], df["Beatles"])
+    #plt.plot(df["date"], df["Mariah"])
+    #Saving the plot as an image
+    #plt.savefig('/tmp/line_plot.jpg', bbox_inches='tight', dpi=150)
 
-    trendString = """
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-    """
-    return df.to_string()
+    #with open("/tmp/line_plot.jpg", "rb") as img_file:
+    #    my_string = base64.b64encode(img_file.read())
+    #print(my_string)
+
+    return df.to_json() #+ "\n" + my_string
+
+@app.route('/time', methods=["GET"])
+
+def timeLog():
+    def log_execution_time(func):
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            result = func(*args, **kwargs)
+            end_time = time.time()
+            execution_time = end_time - start_time
+            print(f"Execution time of {func.__name__}: {execution_time} seconds")
+            x.append(func.__name__ + ": " + str(execution_time))
+            return result
+        return wrapper
+
+    def count_count(text, word_count):
+        # Split the text into words
+        words = text.split()
+
+        # Iterate over the list of words
+        for word in words:
+            # If the word is not in the dictionary, add it as a key and set its value to 1
+            if word not in word_count:
+                word_count[word] = 1
+            # If the word is already in the dictionary, increment its value by 1
+            else:
+                word_count[word] += 1
+
+        return(word_count)
+
+    def dict_count(text, word_count):
+        # Split the text into words
+        words = text.split()
+
+        # Iterate over the list of words
+        for word in words:
+            word_count[word] = word_count.get(word, 0) + 1
+        return (word_count)
+
+    global x
+    x = []
+    @log_execution_time
+    def compute_count():
+        with(open("sh.txt") as f):
+            data = f.readlines()
+        prevOutput={}
+        for sentence in data:
+            countOutput = count_count(sentence, prevOutput)
+            prevOutput = countOutput
+        return countOutput
+
+    @log_execution_time
+    def compute_dict():
+        with(open("sh.txt") as f):
+            data = f.readlines()
+        prevOutput = {}
+        for sentence in data:
+            dictOutput = dict_count(sentence, prevOutput)
+            prevOutput = dictOutput
+        return dictOutput
+
+    countResult=compute_count()
+    dictResult = compute_dict()
+
+    return str(x)
+
+if __name__ == '__main__':
+    app.run()
