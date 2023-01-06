@@ -3,9 +3,11 @@ import logging
 import requests
 from pytrends.request import TrendReq
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import base64
 import time
+from collections import Counter
 
 app = Flask(__name__)
 
@@ -90,24 +92,13 @@ def timeLog():
             end_time = time.time()
             execution_time = end_time - start_time
             print(f"Execution time of {func.__name__}: {execution_time} seconds")
-            x.append(func.__name__ + ": " + str(execution_time))
+            x.append(execution_time)
             return result
         return wrapper
 
-    def count_count(text, word_count):
-        # Split the text into words
-        words = text.split()
-
-        # Iterate over the list of words
-        for word in words:
-            # If the word is not in the dictionary, add it as a key and set its value to 1
-            if word not in word_count:
-                word_count[word] = 1
-            # If the word is already in the dictionary, increment its value by 1
-            else:
-                word_count[word] += 1
-
-        return(word_count)
+    def count_count(text, word_counter):
+        word_counter.update(text)
+        return (word_counter)
 
     def dict_count(text, word_count):
         # Split the text into words
@@ -124,7 +115,7 @@ def timeLog():
     def compute_count():
         with(open("sh.txt") as f):
             data = f.readlines()
-        prevOutput={}
+        prevOutput=Counter()
         for sentence in data:
             countOutput = count_count(sentence, prevOutput)
             prevOutput = countOutput
@@ -140,10 +131,22 @@ def timeLog():
             prevOutput = dictOutput
         return dictOutput
 
-    countResult=compute_count()
-    dictResult = compute_dict()
 
-    return str(x)
+    for i in range(100):
+        countResult=compute_count()
+        dictResult = compute_dict()
+
+    counts=x[::2]
+    dicts=x[1::2]
+    outString = "count mean: "
+    outString += str(np.mean(counts))
+    outString += "\ncount variance: "
+    outString += str(np.std(counts)**2)
+    outString += "\ndict mean: "
+    outString += str(np.mean(dicts))
+    outString += "\ndict variance: "
+    outString += str(np.std(dicts)**2)
+    return outString
 
 if __name__ == '__main__':
     app.run()
